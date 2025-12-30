@@ -171,6 +171,8 @@ GEM
     minitest (6.0.1)
       prism (~> 1.5)
     msgpack (1.8.0)
+    neighbor (0.6.0)
+      activerecord (>= 7.1)
     net-imap (0.6.2)
       date
       net-protocol
@@ -193,6 +195,9 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.0-x86_64-linux-gnu)
       racc (~> 1.4)
+    openai (0.42.0)
+      base64
+      connection_pool
     ostruct (0.6.3)
     parallel (1.27.0)
     parser (3.3.10.0)
@@ -376,6 +381,8 @@ DEPENDENCIES
   importmap-rails
   jbuilder
   kamal
+  neighbor
+  openai
   pg (~> 1.1)
   propshaft
   puma (>= 5.0)

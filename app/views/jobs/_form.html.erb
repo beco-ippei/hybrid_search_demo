@@ -1,0 +1,47 @@
+<%= form_with(model: job) do |form| %>
+  <% if job.errors.any? %>
+    <div style="color: red">
+      <h2><%= pluralize(job.errors.count, "error") %> prohibited this job from being saved:</h2>
+
+      <ul>
+        <% job.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :title, style: "display: block" %>
+    <%= form.text_field :title %>
+  </div>
+
+  <div>
+    <%= form.label :description, style: "display: block" %>
+    <%= form.textarea :description %>
+  </div>
+
+  <div>
+    <%= form.label :min_salary, style: "display: block" %>
+    <%= form.number_field :min_salary %>
+  </div>
+
+  <div>
+    <%= form.label :embedding, style: "display: block" %>
+    <%= form.text_field :embedding %>
+  </div>
+
+  <div>
+    <%= form.label :#, style: "display: block" %>
+    <%= form.text_field :# %>
+  </div>
+
+  <div>
+    <%= form.label :OpenAIの次元数, style: "display: block" %>
+    <%= form.text_field :OpenAIの次元数 %>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>
