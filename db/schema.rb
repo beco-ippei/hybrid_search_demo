@@ -10,15 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_30_033026) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_01_144716) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
 
   create_table "jobs", force: :cascade do |t|
+    t.string "business_type"
     t.datetime "created_at", null: false
     t.text "description"
     t.vector "embedding", limit: 1536
+    t.string "job_category"
+    t.string "location"
     t.integer "min_salary"
     t.string "title"
     t.datetime "updated_at", null: false

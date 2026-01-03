@@ -3,19 +3,26 @@ class Job < ApplicationRecord
   has_neighbors :embedding
 
   # 保存前に自動でベクトル化
-  before_save :generate_embedding, if: -> { description_changed? }
+  before_save :generate_embedding, if: -> { description_changed? || job_category_changed? || business_type_changed? || location_changed? }
 
+  # @return [void]
   def generate_embedding
     client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
 
-    # 【修正点】 タイトルと本文を結合し、AIに「これは何のデータか」を明示するフォーマットにする
-    # これにより "職種: 法人営業" という強いシグナルが先頭に来る
-    combined_text = "職種名: #{self.title}\n仕事内容: #{self.description}"
+    # タイトル、職種カテゴリ、事業種別、所在地、仕事内容を結合してベクトル化
+    # これにより、各属性が検索クエリとマッチしやすくなる
+    combined_text = [
+      "職種名: #{self.title}",
+      ("職種カテゴリ: #{self.job_category}" if self.job_category.present?),
+      ("事業種別: #{self.business_type}" if self.business_type.present?),
+      ("勤務地: #{self.location}" if self.location.present?),
+      "仕事内容: #{self.description}"
+    ].compact.join("\n")
 
     response = client.embeddings(
       parameters: {
         model: "text-embedding-3-small",
-        input: combined_text # ここを combined_text に変更
+        input: combined_text
       }
     )
     self.embedding = response.dig("data", 0, "embedding")
@@ -34,6 +41,15 @@ class Job < ApplicationRecord
   end
 
   # ■■■ ここがハイブリッド検索の核心 ■■■
+  # @param keyword [String] 検索キーワード
+  # @param args [Hash] 絞り込み条件
+  # @option args [Integer] :salary 最低年収
+  # @option args [String] :title タイトル（部分一致）
+  # @option args [String] :job_category 職種カテゴリ（部分一致）
+  # @option args [String] :business_type 事業種別（部分一致）
+  # @option args [String] :location 所在地（部分一致）
+  # @option args [Integer] :limit 取得件数（デフォルト: 5）
+  # @return [ActiveRecord::Relation]
   def self.hybrid_search(keyword, **args)
     # 1. ユーザーの入力をベクトル化
     client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
@@ -43,8 +59,6 @@ class Job < ApplicationRecord
     query_vector = response.dig("data", 0, "embedding")
 
     # 2. SQL検索 (キーワード) と ベクトル検索 (意味) を組み合わせる
-    # 例: 「年収600万以上」かつ「ベクトルが近い順」
-
     query = all
 
     # 普通のSQL (最低年収などで絞り込みたい場合)
@@ -56,18 +70,34 @@ class Job < ApplicationRecord
       query = query.where("title LIKE ?", "%#{args[:title]}%")
     end
 
-    # シンプルにベクトルだけで検索する場合:
-    query.nearest_neighbors(:embedding, query_vector, distance: "cosine").limit(5)
+    if args[:job_category].present?
+      query = query.where("job_category LIKE ?", "%#{args[:job_category]}%")
+    end
+
+    if args[:business_type].present?
+      query = query.where("business_type LIKE ?", "%#{args[:business_type]}%")
+    end
+
+    if args[:location].present?
+      query = query.where("location LIKE ?", "%#{args[:location]}%")
+    end
+
+    # ベクトル検索を適用
+    limit_count = args[:limit] || 5
+    query.nearest_neighbors(:embedding, query_vector, distance: "cosine").limit(limit_count)
   end
 
+  # コンソールから呼びやすいようにするための hybrid_search のラッパー
+  # @param query [String] 検索キーワード
+  # @param args [Hash] 絞り込み条件
+  # @return [nil]
   def self.hsearch(query, **args)
     results = Job.hybrid_search(query, **args).to_a
 
     puts "keyword:'#{query}', #{args}"
     results.each do |j|
-      # puts " > #{j.title} / dist:#{j.neighbor_distance}"
-      puts " > #{j.title} / salary:#{j.min_salary} / dist:#{j.neighbor_distance}"
-      # puts " > #{j.title} / salary:#{j.min_salary} / dist:-"
+      puts " > #{j.title} [#{j.job_category}] [#{j.business_type}] [#{j.location}]"
+      puts "   年収:#{j.min_salary}万〜 / 類似度:#{j.neighbor_distance&.round(4)}"
     end
     nil
   end
