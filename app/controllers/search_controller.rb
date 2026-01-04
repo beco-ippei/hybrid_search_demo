@@ -2,6 +2,9 @@ class SearchController < ApplicationController
   # GET /search
   # 自然言語検索のトップページ
   def index
+    # 全件データを取得（右カラムに表示）
+    @all_jobs = Job.order(created_at: :desc)
+
     return unless params[:query].present?
 
     @query = params[:query]

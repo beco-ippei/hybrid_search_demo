@@ -1,9 +1,31 @@
 /* 自然言語検索ページのスタイル */
 
 .search-container {
-  max-width: 1000px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 20px;
+}
+
+/* 2カラムレイアウト */
+.two-column-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  align-items: start;
+}
+
+.left-column {
+  min-width: 0; /* グリッドのオーバーフロー防止 */
+}
+
+.right-column {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 20px;
 }
 
 .search-header {
@@ -306,7 +328,97 @@
   font-weight: 500;
 }
 
+/* 右カラム: 全件データ表示 */
+.all-jobs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #cbd5e0;
+}
+
+.all-jobs-header h2 {
+  font-size: 1.3rem;
+  color: #2d3748;
+  margin: 0;
+}
+
+.all-jobs-count {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #718096;
+  background: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.all-jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* コンパクトな求人カード */
+.job-card.compact {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.2s;
+}
+
+.job-card.compact:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  transform: translateX(-2px);
+}
+
+.job-card.compact .job-header {
+  margin-bottom: 10px;
+}
+
+.job-card.compact .job-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+}
+
+.job-salary-compact {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #48bb78;
+}
+
+.job-card.compact .job-meta {
+  margin-bottom: 8px;
+}
+
+.job-card.compact .job-badge {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+.job-description-compact {
+  color: #718096;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 10px 0 0 0;
+}
+
 /* レスポンシブ対応 */
+@media (max-width: 1200px) {
+  .two-column-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .right-column {
+    position: static;
+    max-height: 400px;
+    order: -1; /* 右カラムを上に表示 */
+  }
+}
+
 @media (max-width: 768px) {
   .search-header h1 {
     font-size: 2rem;

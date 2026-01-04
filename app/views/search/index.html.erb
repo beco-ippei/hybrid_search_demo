@@ -1,114 +1,146 @@
-<div class="search-container">
-  <div class="search-header">
-    <h1>🔍 AI求人検索</h1>
-    <p class="subtitle">自然な日本語で求人を検索できます</p>
-  </div>
+<div class="search-container two-column-layout">
+  <!-- 左カラム: 検索フォームと検索結果 -->
+  <div class="left-column">
+    <div class="search-header">
+      <h1>🔍 AI求人検索</h1>
+      <p class="subtitle">自然な日本語で求人を検索できます</p>
+    </div>
 
-  <!-- 検索フォーム -->
-  <div class="search-form-wrapper">
-    <%= form_with url: search_path, method: :get, class: "search-form", data: { turbo_frame: "search_results" } do |f| %>
-      <div class="search-input-group">
-        <%= f.text_field :query,
-          value: @query,
-          placeholder: '例: 都内で年収800万以上のRailsエンジニア',
-          class: "search-input",
-          autofocus: true,
-          autocomplete: "off" %>
-        <%= f.submit "検索", class: "search-button" %>
-      </div>
+    <!-- 検索フォーム -->
+    <div class="search-form-wrapper">
+      <%= form_with url: search_path, method: :get, class: "search-form", data: { turbo_frame: "search_results" } do |f| %>
+        <div class="search-input-group">
+          <%= f.text_field :query,
+            value: @query,
+            placeholder: '例: 都内で年収800万以上のRailsエンジニア',
+            class: "search-input",
+            autofocus: true,
+            autocomplete: "off" %>
+          <%= f.submit "検索", class: "search-button" %>
+        </div>
 
-      <div class="search-examples">
-        <span class="examples-label">検索例:</span>
-        <button type="button" class="example-query" data-query="児童発達支援の保育士を探しています">児童発達支援の保育士</button>
-        <button type="button" class="example-query" data-query="渋谷でWebマーケティングの仕事">渋谷でWebマーケティング</button>
-        <button type="button" class="example-query" data-query="年収500万以上のサービス管理責任者">年収500万以上のサビ管</button>
-      </div>
+        <div class="search-examples">
+          <span class="examples-label">検索例:</span>
+          <button type="button" class="example-query" data-query="児童発達支援の保育士を探しています">児童発達支援の保育士</button>
+          <button type="button" class="example-query" data-query="渋谷でWebマーケティングの仕事">渋谷でWebマーケティング</button>
+          <button type="button" class="example-query" data-query="年収500万以上のサービス管理責任者">年収500万以上のサビ管</button>
+        </div>
 
-      <% if Rails.env.development? %>
-        <div class="debug-toggle">
-          <%= f.check_box :debug, checked: @show_debug %>
-          <%= f.label :debug, "デバッグ情報を表示" %>
+        <% if Rails.env.development? %>
+          <div class="debug-toggle">
+            <%= f.check_box :debug, checked: @show_debug %>
+            <%= f.label :debug, "デバッグ情報を表示" %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- 検索結果エリア -->
+    <%= turbo_frame_tag "search_results" do %>
+      <% if @search_performed %>
+        <div class="search-results">
+          <% if @error_message %>
+            <div class="error-message">
+              ⚠️ <%= @error_message %>
+            </div>
+          <% else %>
+            <!-- デバッグ情報（開発モード） -->
+            <% if @show_debug && @parse_result %>
+              <div class="debug-info">
+                <h3>📊 LLM解析結果</h3>
+                <div class="debug-content">
+                  <p><strong>キーワード:</strong> <%= @parse_result[:keyword] %></p>
+                  <p><strong>絞り込み条件:</strong></p>
+                  <ul>
+                    <% if @parse_result[:filters].any? %>
+                      <% @parse_result[:filters].each do |key, value| %>
+                        <li><code><%= key %></code>: <%= value %></li>
+                      <% end %>
+                    <% else %>
+                      <li>（なし）</li>
+                    <% end %>
+                  </ul>
+                </div>
+              </div>
+            <% end %>
+
+            <!-- 検索結果 -->
+            <div class="results-header">
+              <h2>検索結果</h2>
+              <span class="results-count"><%= @jobs.size %>件</span>
+            </div>
+
+            <% if @jobs.any? %>
+              <div class="job-list">
+                <% @jobs.each do |job| %>
+                  <div class="job-card">
+                    <div class="job-header">
+                      <h3 class="job-title"><%= job.title %></h3>
+                      <span class="job-salary">💰 <%= job.min_salary %>万円〜</span>
+                    </div>
+
+                    <div class="job-meta">
+                      <span class="job-badge category"><%= job.job_category %></span>
+                      <span class="job-badge business"><%= job.business_type %></span>
+                      <span class="job-badge location">📍 <%= job.location %></span>
+                    </div>
+
+                    <p class="job-description"><%= truncate(job.description, length: 100) %></p>
+
+                    <div class="job-footer">
+                      <% if job.neighbor_distance %>
+                        <span class="similarity-score" title="AIによる類似度スコア（0に近いほど関連性が高い）">
+                          🎯 類似度: <%= number_to_percentage((1 - job.neighbor_distance) * 100, precision: 1) %>
+                        </span>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="no-results">
+                <p>😔 該当する求人が見つかりませんでした</p>
+                <p class="no-results-hint">
+                  検索条件を変えてみてください。<br>
+                  例: 「エンジニア」「福祉」「東京」など
+                </p>
+              </div>
+            <% end %>
+          <% end %>
         </div>
       <% end %>
     <% end %>
   </div>
 
-  <!-- 検索結果エリア -->
-  <%= turbo_frame_tag "search_results" do %>
-    <% if @search_performed %>
-      <div class="search-results">
-        <% if @error_message %>
-          <div class="error-message">
-            ⚠️ <%= @error_message %>
-          </div>
-        <% else %>
-          <!-- デバッグ情報（開発モード） -->
-          <% if @show_debug && @parse_result %>
-            <div class="debug-info">
-              <h3>📊 LLM解析結果</h3>
-              <div class="debug-content">
-                <p><strong>キーワード:</strong> <%= @parse_result[:keyword] %></p>
-                <p><strong>絞り込み条件:</strong></p>
-                <ul>
-                  <% if @parse_result[:filters].any? %>
-                    <% @parse_result[:filters].each do |key, value| %>
-                      <li><code><%= key %></code>: <%= value %></li>
-                    <% end %>
-                  <% else %>
-                    <li>（なし）</li>
-                  <% end %>
-                </ul>
-              </div>
-            </div>
-          <% end %>
+  <!-- 右カラム: 全件データ -->
+  <div class="right-column">
+    <div class="all-jobs-header">
+      <h2>📋 全求人データ</h2>
+      <span class="all-jobs-count"><%= @all_jobs.size %>件</span>
+    </div>
 
-          <!-- 検索結果 -->
-          <div class="results-header">
-            <h2>検索結果</h2>
-            <span class="results-count"><%= @jobs.size %>件</span>
+    <div class="all-jobs-list">
+      <% @all_jobs.each do |job| %>
+        <div class="job-card compact">
+          <div class="job-header">
+            <h4 class="job-title"><%= job.title %></h4>
+            <span class="job-salary-compact">💰 <%= job.min_salary %>万</span>
           </div>
 
-          <% if @jobs.any? %>
-            <div class="job-list">
-              <% @jobs.each do |job| %>
-                <div class="job-card">
-                  <div class="job-header">
-                    <h3 class="job-title"><%= job.title %></h3>
-                    <span class="job-salary">💰 <%= job.min_salary %>万円〜</span>
-                  </div>
+          <div class="job-meta">
+            <span class="job-badge category"><%= job.job_category %></span>
+            <span class="job-badge business"><%= job.business_type %></span>
+          </div>
 
-                  <div class="job-meta">
-                    <span class="job-badge category"><%= job.job_category %></span>
-                    <span class="job-badge business"><%= job.business_type %></span>
-                    <span class="job-badge location">📍 <%= job.location %></span>
-                  </div>
+          <div class="job-meta">
+            <span class="job-badge location">📍 <%= job.location %></span>
+          </div>
 
-                  <p class="job-description"><%= truncate(job.description, length: 150) %></p>
-
-                  <div class="job-footer">
-                    <% if job.neighbor_distance %>
-                      <span class="similarity-score" title="AIによる類似度スコア（0に近いほど関連性が高い）">
-                        🎯 類似度: <%= number_to_percentage((1 - job.neighbor_distance) * 100, precision: 1) %>
-                      </span>
-                    <% end %>
-                    <%= link_to "詳細を見る", job_path(job), class: "job-link" %>
-                  </div>
-                </div>
-              <% end %>
-            </div>
-          <% else %>
-            <div class="no-results">
-              <p>😔 該当する求人が見つかりませんでした</p>
-              <p class="no-results-hint">
-                検索条件を変えてみてください。<br>
-                例: 「エンジニア」「福祉」「東京」など
-              </p>
-            </div>
-          <% end %>
-        <% end %>
-      </div>
-    <% end %>
-  <% end %>
+          <p class="job-description-compact"><%= truncate(job.description, length: 80) %></p>
+        </div>
+      <% end %>
+    </div>
+  </div>
 </div>
 
 <script>
