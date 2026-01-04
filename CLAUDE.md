@@ -77,6 +77,18 @@ Job.hsearch("デザイナー", salary: 5000000)
 Job.hsearch("支援", title: "児童")
 ```
 
+### 自然言語検索のテスト
+```bash
+# インタラクティブモード（コンソールから自由に検索）
+bin/rails search:interactive
+
+# 自動テスト（5パターンの検索例）
+bin/rails test:nlp_search
+
+# WebUI（ブラウザで http://localhost:3000 にアクセス）
+bin/rails server
+```
+
 ## アーキテクチャ
 
 ### ハイブリッド検索の仕組み
@@ -98,6 +110,37 @@ Job.hsearch("支援", title: "児童")
 - `Job`モデルの`before_save`コールバックで自動的に埋め込みベクトルを生成
 - `description`が変更された場合のみOpenAI APIを呼び出す（コスト最適化）
 - タイトルと説明文を結合した形式でベクトル化することで、職種名の重要性を強調
+
+### 自然言語検索の仕組み（JobSearchParserService）
+
+ユーザーの自然言語クエリ（例: 「都内で年収800万以上のRailsエンジニア」）をLLMで解析し、構造化データに変換する：
+
+1. **LLMによる解析** (`app/services/job_search_parser_service.rb`)
+   - OpenAI `gpt-4o-mini`を使用（高速・低コスト）
+   - JSON形式で構造化データを返却
+   - システムプロンプトに職種カテゴリ・事業種別のリストを含める
+
+2. **構造化データの形式**
+   ```ruby
+   {
+     keyword: "Rails エンジニア サーバーサイド開発 Ruby",
+     filters: {
+       salary: 800,
+       job_category: "IT・エンジニア職",
+       location: "東京都"
+     }
+   }
+   ```
+
+3. **検索実行の流れ**
+   - 解析結果の`keyword`を使ってベクトル検索
+   - `filters`でSQL絞り込み
+   - ハイブリッド検索で最適な結果を返す
+
+4. **WebUI** (`/search` または `/`)
+   - シンプルな1つの検索ボックス
+   - Turbo Framesでページリロードなしに検索結果を表示
+   - デバッグモード（開発環境のみ）でLLM解析結果を可視化
 
 ### データベーススキーマ
 
