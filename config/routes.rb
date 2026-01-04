@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   # 自然言語求人検索
   get "search", to: "search#index", as: :search
+  get "search/advanced", to: "search#advanced", as: :advanced_search
   root "search#index"
 
   # 求人CRUD
