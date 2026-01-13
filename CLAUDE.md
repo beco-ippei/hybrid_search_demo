@@ -160,7 +160,7 @@ PostgreSQLのvector拡張機能を有効化する必要がある（`db/migrate/2
 
 ## テストデータ
 
-`lib/tasks/import_jobs.rake`にLITALICO風の求人データ作成タスクがある：
+`lib/tasks/import_jobs.rake`にL社風の求人データ作成タスクがある：
 - テック職（Webエンジニア、UI/UXデザイナー）
 - 専門職（児童指導員、就労支援員）
 - ビジネス職（インサイドセールス、教室長）

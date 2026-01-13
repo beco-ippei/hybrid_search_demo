@@ -1,11 +1,11 @@
 namespace :import do
-  desc "LITALICO風の求人データを作成する（ベクトル検索テスト用）"
+  desc "L社風の求人データを作成する（ベクトル検索テスト用）"
   task jobs: :environment do
     puts "========================================"
     puts "既存の求人データを削除しています..."
     Job.destroy_all
 
-    puts "LITALICO風の求人データを作成中..."
+    puts "L社風の求人データを作成中..."
 
     # ========================================
     # 1. 福祉専門職（児童発達支援・放課後等デイサービス）
@@ -21,7 +21,7 @@ namespace :import do
     print "."
 
     Job.create!(
-      title: "保育士（LITALICOジュニア）",
+      title: "保育士（LLLジュニア）",
       job_category: "福祉専門職",
       business_type: "児童発達支援",
       location: "神奈川県横浜市",
@@ -44,7 +44,7 @@ namespace :import do
     # 2. 就労支援関連
     # ========================================
     Job.create!(
-      title: "就労支援員（LITALICOワークス）",
+      title: "就労支援員（LLLワークス）",
       job_category: "福祉専門職",
       business_type: "就労移行支援",
       location: "東京都渋谷区",
@@ -184,7 +184,7 @@ namespace :import do
       business_type: "IT事業",
       location: "東京都目黒区",
       min_salary: 480,
-      description: "LITALICOキャリアやLITALICOジュニアのWebマーケティング施策の企画・実行を担当します。SEO対策、リスティング広告運用、コンテンツマーケティング、GA4でのデータ分析など、デジタルマーケティング全般を担います。"
+      description: "LLLキャリアやLLLジュニアのWebマーケティング施策の企画・実行を担当します。SEO対策、リスティング広告運用、コンテンツマーケティング、GA4でのデータ分析など、デジタルマーケティング全般を担います。"
     )
     print "."
 
